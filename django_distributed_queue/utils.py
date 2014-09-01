@@ -23,4 +23,4 @@ class LazyModel(object):
         if self._instance is None:
             self._instance = self._model_class.objects.get(pk=self.pk)
         # Raises correct AttributeError if name is not found in decorated self.func.
-        return getattr(self.instance, attr_name)
+        return getattr(self._instance, attr_name)
