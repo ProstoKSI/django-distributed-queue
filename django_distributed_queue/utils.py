@@ -12,10 +12,21 @@ class LazyModel(object):
         self.pk = pk
         self._instance = None
 
+    def __setattr__(self, attr_name, value):
+        # Hiding traces of decoration.
+        if attr_name in ('__init__', '__setattr__', '__getattribute__',
+                'pk', '_model_class', '_instance'):
+            return object.__setattr__(self, attr_name, value)
+        # All other attr_names, including auto-defined by system in self, are
+        # updated in decorated self.instance.
+        if self._instance is None:
+            self._instance = self._model_class.objects.get(pk=self.pk)
+        return setattr(self._instance, attr_name, value)
+
     def __getattribute__(self, attr_name):
         # Hiding traces of decoration.
-        if attr_name in ('__init__', '__getattribute__', '_model_class', 'pk',
-                '_instance'):
+        if attr_name in ('__init__', '__setattr__', '__getattribute__', 
+                '_model_class', 'pk', '_instance'):
             # Stopping recursion.
             return object.__getattribute__(self, attr_name)
         # All other attr_names, including auto-defined by system in self, are
